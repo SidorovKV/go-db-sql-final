@@ -68,15 +68,15 @@ func (s ParcelStore) Add(p Parcel) (int, error) {
 		sql.Named("created_at", p.CreatedAt),
 	)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("add query execution error: %w", err)
 	}
 	// верните идентификатор последней добавленной записи
 	id, err := res.LastInsertId()
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("can't get last insertion id: %w", err)
 	}
 
-	return int(id), err
+	return int(id), nil
 }
 
 func (s ParcelStore) Get(number int) (Parcel, error) {
@@ -95,7 +95,7 @@ func (s ParcelStore) Get(number int) (Parcel, error) {
 		&p.CreatedAt,
 	)
 	if err != nil {
-		return Parcel{}, err
+		return Parcel{}, fmt.Errorf("get parcel by id error: %w", err)
 	}
 
 	return p, nil
@@ -106,7 +106,7 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 	// здесь из таблицы может вернуться несколько строк
 	rows, err := s.db.Query(getByClientQuery, sql.Named("client", client))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("get parcels by client id error: %w", err)
 	}
 	defer func() {
 		err = rows.Close()
@@ -129,7 +129,7 @@ func (s ParcelStore) GetByClient(client int) ([]Parcel, error) {
 			&p.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("get parcels by client id error: %w", err)
 		}
 
 		res = append(res, p)
@@ -144,8 +144,11 @@ func (s ParcelStore) SetStatus(number int, status string) error {
 		sql.Named("number", number),
 		sql.Named("status", status),
 	)
+	if err != nil {
+		return fmt.Errorf("set parcel status error: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 func (s ParcelStore) SetAddress(number int, address string) error {
@@ -156,8 +159,11 @@ func (s ParcelStore) SetAddress(number int, address string) error {
 		sql.Named("number", number),
 		sql.Named("status", ParcelStatusRegistered),
 	)
+	if err != nil {
+		return fmt.Errorf("set parcel address error: %w", err)
+	}
 
-	return err
+	return nil
 }
 
 func (s ParcelStore) Delete(number int) error {
@@ -167,6 +173,9 @@ func (s ParcelStore) Delete(number int) error {
 		sql.Named("number", number),
 		sql.Named("status", ParcelStatusRegistered),
 	)
+	if err != nil {
+		return fmt.Errorf("delete parcel error: %w", err)
+	}
 
-	return err
+	return nil
 }
